@@ -1,0 +1,9 @@
+问题描述：刚新装的centos6.6能够ping通内网，不能ping通外网,如下：
+# ping www.lawtime.cn
+ping: unknown host www.lawtime.cn
+原因：系统缺少路由配置
+解决：
+1./etc/sysconfig/network-scripts  目录下新建文件  route-eth0 添加内容  via 192.168.1.1
+2.重启网络：/sbin/service network restart  然后ping www.lawtime.cn   
+
+OK! 能上网了。
