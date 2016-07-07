@@ -1,0 +1,70 @@
+关于log4j从不同角度维护的问题。
+1.按package输出不同日志文件。
+2.按级别输出不同文件。
+3.在错误发生时，发送邮件。及时通知维护人员。
+代码如下：
+#2016-07-07 lisx
+#定义根节点，定义级别，输出位置。一个文件只有是一个根节点，他们具有继承关系
+log4j.rootLogger=info,stdout,MAIL,errorLog,R
+#按package生成不同日志文件
+#log4j.logger.com.navrise=info,R
+#log4j.logger.com.navrise.pay.cmp.action=info,sql
+
+#定义stdot输出到控制台，开发方便，如果部署linux，可使用nohup查看
+log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+#定义输出内容的级别
+log4j.appender.Threshold=INFO
+#定义自定义输出模式
+log4j.appender.stdout.layout=org.apache.log4j.PatternLayout 
+#定义输出格式
+log4j.appender.stdout.layout.ConversionPattern=%d{yyyy-MM-dd HH\:mm\:ss,SSS} %5p [%t] (%F\:%L) - %m%n
+log4j.appender.stdout.Encoding=UTF-8
+
+#每天生成一个log4j文件，回滚1G
+log4j.appender.R=org.apache.log4j.DailyRollingFileAppender
+#输出位置
+log4j.appender.R.File=../logs/xh-pay-cmp.log
+#输出文件的日期格式
+log4j.appender.R.DatePattern='.'yyyy-MM-dd
+log4j.appender.R.layout=org.apache.log4j.PatternLayout
+log4j.appender.R.layout.ConversionPattern=%d{yyyy-MM-dd HH\:mm\:ss,SSS} %5p [%t] (%F\:%L) - %m%n
+
+log4j.appender.errorLog=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.errorLog.Threshold=ERROR
+log4j.appender.errorLog.File=../logs/xh-pay-error.log
+log4j.appender.errorLog.DatePattern='.'yyyy-MM-dd
+log4j.appender.errorLog.layout=org.apache.log4j.PatternLayout
+log4j.appender.errorLog.layout.ConversionPattern=%d{yyyy-MM-dd HH\:mm\:ss,SSS} %5p [%t] (%F\:%L) - %m%n
+
+log4j.appender.MAIL=org.apache.log4j.net.SMTPAppender  
+log4j.appender.MAIL.Threshold=ERROR  
+#缓存文件大小，日志达到10k时发送Email  
+log4j.appender.MAIL.BufferSize=100
+#发送邮件的邮箱帐号  
+log4j.appender.MAIL.From=xx@163.com
+#SMTP邮件发送服务器地址  
+log4j.appender.MAIL.SMTPHost=smtp.163.com
+#SMTP发送认证的帐号名  
+log4j.appender.MAIL.SMTPUsername=xx@163.com
+#SMTP发送认证帐号的密码  
+log4j.appender.MAIL.SMTPPassword=xxxxsss
+#是否打印调试信息，如果选true，则会输出和SMTP之间的握手等详细信息  
+log4j.appender.MAIL.SMTPDebug=false  
+#邮件主题  ，会产生乱码，需要用native2asii log4j.properties log4jxx.properties转换一下。也可以myeclipse的kv编辑器编辑，会自动转译
+log4j.appender.MAIL.Subject=Log4J\u63D0\u9192\u60A8\uFF1Acmp\u7CFB\u7EDF\u53D1\u751F\u4E86\u4E25\u91CD\u9519\u8BEF \uFF0C\u8BF7\u53CA\u65F6\u5904\u7406
+#发送到什么邮箱，如果要发送给多个邮箱，则用逗号分隔；  
+#如果需要发副本给某人，则加入下列行  
+#log4j.appender.MAIL.Bcc=xxx@xxx.xxx  
+log4j.appender.MAIL.To=903790922@qq.com
+log4j.appender.MAIL.layout=com.navrise.pay.cmp.util.CmpPatternLayout
+log4j.appender.MAIL.layout.ConversionPattern=[framework]%d - %c -%-4r[%t]%-5p %c %x -%m%n  
+
+最后就是发送的邮箱乱码问题，重写具体的布局模式：如下
+public class CmpPatternLayout extends PatternLayout{
+
+	@Override
+	public String getContentType() {
+		return "text/html;charset=UTF-8"; 
+	} 
+	
+	整个部署完成。
